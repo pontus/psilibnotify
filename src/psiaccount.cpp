@@ -141,6 +141,10 @@
 #include "psigrowlnotifier.h"
 #endif
 
+#if defined(HAVE_LIBNOTIFY)
+#include "psilibnotify.h"
+#endif
+
 #include "bsocket.h"
 /*#ifdef Q_WS_WIN
 #include <windows.h>
@@ -1949,7 +1953,7 @@ void PsiAccount::client_resourceAvailable(const Jid &j, const Resource &r)
 	if(doSound)
 		playSound(PsiOptions::instance()->getOption("options.ui.notifications.sounds.contact-online").toString());
 
-#if !defined(Q_WS_MAC) || !defined(HAVE_GROWL)
+#if (!defined(Q_WS_MAC) || !defined(HAVE_GROWL)) && !defined(HAVE_LIBNOTIFY)
 	// Do the popup test earlier (to avoid needless JID lookups)
 	if ((popupType == PopupOnline && PsiOptions::instance()->getOption("options.ui.notifications.passive-popups.status.online").toBool()) || (popupType == PopupStatusChange && PsiOptions::instance()->getOption("options.ui.notifications.passive-popups.status.other-changes").toBool()))
 #endif
@@ -1963,13 +1967,19 @@ void PsiAccount::client_resourceAvailable(const Jid &j, const Resource &r)
 		else if ( popupType == PopupStatusChange )
 			pt = PsiPopup::AlertStatusChange;
 
+
 		if ((popupType == PopupOnline && PsiOptions::instance()->getOption("options.ui.notifications.passive-popups.status.online").toBool()) || (popupType == PopupStatusChange && PsiOptions::instance()->getOption("options.ui.notifications.passive-popups.status.other-changes").toBool())) {
-			PsiPopup *popup = new PsiPopup(pt, this);
-			popup->setData(j, r, u);
-		}
+
 #if defined(Q_WS_MAC) && defined(HAVE_GROWL)
-		PsiGrowlNotifier::instance()->popup(this, pt, j, r, u);
+		  PsiGrowlNotifier::instance()->popup(this, pt, j, r, u);
+#elif defined(HAVE_LIBNOTIFY)
+		  PsiLibnotify::instance()->popup(this, pt, j, r, u);
+#else
+		  PsiPopup *popup = new PsiPopup(pt, this);
+		  popup->setData(j, r, u);
 #endif
+		}
+
 	}
 	else if ( !notifyOnlineOk )
 		d->userCounter++;
@@ -2042,7 +2052,7 @@ void PsiAccount::client_resourceUnavailable(const Jid &j, const Resource &r)
 	if(doSound)
 		playSound(PsiOptions::instance()->getOption("options.ui.notifications.sounds.contact-offline").toString());
 
-#if !defined(Q_WS_MAC) || !defined(HAVE_GROWL)
+#if (!defined(Q_WS_MAC) || !defined(HAVE_GROWL)) && !defined(HAVE_LIBNOTIFY)
 	// Do the popup test earlier (to avoid needless JID lookups)
 	if (PsiOptions::instance()->getOption("options.ui.notifications.passive-popups.status.offline").toBool())
 #endif
@@ -2051,12 +2061,16 @@ void PsiAccount::client_resourceUnavailable(const Jid &j, const Resource &r)
 		UserListItem *u = findFirstRelevant(j);
 
 		if (PsiOptions::instance()->getOption("options.ui.notifications.passive-popups.status.offline").toBool()) {
-			PsiPopup *popup = new PsiPopup(PsiPopup::AlertOffline, this);
-			popup->setData(j, r, u);
-		}
+
 #if defined(Q_WS_MAC) && defined(HAVE_GROWL)
-		PsiGrowlNotifier::instance()->popup(this, PsiPopup::AlertOffline, j, r, u);
+		  PsiGrowlNotifier::instance()->popup(this, PsiPopup::AlertOffline, j, r, u);
+#elif defined(HAVE_LIBNOTIFY)
+		  PsiLibnotify::instance()->popup(this, PsiPopup::AlertOffline, j, r, u);
+#else
+		  PsiPopup *popup = new PsiPopup(PsiPopup::AlertOffline, this);
+		  popup->setData(j, r, u);
 #endif
+		}
 	}
 }
 
@@ -4053,12 +4067,16 @@ void PsiAccount::handleEvent(PsiEvent* e, ActivationType activationType)
 		    (popupType == PsiPopup::AlertFile     && PsiOptions::instance()->getOption("options.ui.notifications.passive-popups.incoming-file-transfer").toBool()) ||
 		    (popupType == PsiPopup::AlertAvCall   && PsiOptions::instance()->getOption("options.ui.notifications.passive-popups.incoming-message").toBool()))
 		{
-			PsiPopup *popup = new PsiPopup(popupType, this);
-			popup->setData(j, r, u, e);
-		}
+
 #if defined(Q_WS_MAC) && defined(HAVE_GROWL)
-		PsiGrowlNotifier::instance()->popup(this, popupType, j, r, u, e);
+		  PsiGrowlNotifier::instance()->popup(this, popupType, j, r, u, e);
+#elif defined(HAVE_LIBNOTIFY)
+		  PsiLibnotify::instance()->popup(this, popupType, j, r, u, e);
+#else
+		  PsiPopup *popup = new PsiPopup(popupType, this);
+		  popup->setData(j, r, u, e);
 #endif
+		}
 		emit startBounce();
 	}
 
