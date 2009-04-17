@@ -1,0 +1,38 @@
+/*
+-----BEGIN QCMOD-----
+name: Notification Daemon Support
+-----END QCMOD-----
+*/
+
+//----------------------------------------------------------------------------
+// qc_universal
+//----------------------------------------------------------------------------
+class qc_libnotify : public ConfObj
+{
+public:
+  qc_libnotify(Conf *c) : ConfObj(c) {}
+  QString name() const { return "Notification daemon support"; }
+  QString shortname() const { return "libnotify"; }
+  
+  bool exec()
+  {
+    QString version,libs;
+    QStringList incs;
+    
+    if (!conf->findPkgConfig(QString("libnotify"),VersionAny,QString(),&version,&incs,&libs,&QString()))
+      {
+	return false;
+	qWarning("Couldn't find libnotify.");
+      }
+  
+
+    int i=0;
+    while(i<incs.count())
+      conf->addIncludePath(incs[i++]);
+
+    conf->addLib(libs);
+    conf->addDefine("HAVE_LIBNOTIFY");
+
+    return true;
+  }
+};
