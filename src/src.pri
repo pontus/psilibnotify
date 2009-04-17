@@ -36,6 +36,12 @@ mac {
 	}
 }
 
+unix:!mac {
+	contains(DEFINES, HAVE_LIBNOTIFY) {
+		include($$PWD/tools/libnotify/libnotify.pri)
+	}
+}
+
 # Mac dock
 mac { include($$PWD/tools/mac_dock/mac_dock.pri) }
 
@@ -387,6 +393,13 @@ mac {
 	}
 
 	include($$PWD/CocoaUtilities/CocoaUtilities.pri)
+}
+
+unix:!mac { 
+	contains( DEFINES, HAVE_LIBNOTIFY ) {
+		HEADERS += $$PWD/psilibnotify.h
+		SOURCES += $$PWD/psilibnotify.cpp
+	}
 }
 
 # Qt Designer interfaces
