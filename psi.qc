@@ -23,6 +23,7 @@
   </dep>
   <dep type='qdbus'/>
   <dep type='growl'/>
+  <dep type='libnotify'/>
   <dep type='sparkle'/>
   <dep type='xss'/>
   <dep type='ghbnr'/>
