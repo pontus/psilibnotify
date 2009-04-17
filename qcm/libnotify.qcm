@@ -18,15 +18,31 @@ public:
   {
     QString version,libs;
     QStringList incs;
-    
-    if (!conf->findPkgConfig(QString("libnotify"),VersionAny,QString(),&version,&incs,&libs,&QString()))
+    int i;
+
+    // gtkmm seems neccessary, although pkg-config should do this for us.	
+
+    if (!conf->findPkgConfig(QString("gtkmm-1.0"),VersionAny,QString(),&version,&incs,&libs,&QString()))
+    {
+        return false;
+        qWarning("Couldn't find gtkmm 1.0.");
+    }
+
+   
+    i=0;
+    while(i<incs.count())
+      conf->addIncludePath(incs[i++]);
+
+    conf->addLib(libs);
+	 
+    if (!conf->findPkgConfig(QString("libnotifymm-1.0"),VersionAny,QString(),&version,&incs,&libs,&QString()))
       {
 	return false;
-	qWarning("Couldn't find libnotify.");
+	qWarning("Couldn't find libnotifymm 1.0.");
       }
   
 
-    int i=0;
+    i=0;
     while(i<incs.count())
       conf->addIncludePath(incs[i++]);
 
